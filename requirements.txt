@@ -1,0 +1,5 @@
+dronekit
+dronekit-sitl
+mavproxy
+pylint
+autopep8
