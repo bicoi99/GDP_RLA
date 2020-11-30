@@ -5,10 +5,10 @@ This is the GitHub Repository for University of Southampton Group Design Project
 ## Table of Contents
 
 - [About](#about)
-- [Software In The Loop (SITL)](#software-in-the-loop-(sitl))
+- [Software In The Loop (SITL)](#software-in-the-loop)
 - [Dronekit](#dronekit)
 
-## Software In The Loop (SITL)
+## Software In The Loop
 
 Here is a guide of how to setup SITL for Linux or Linux Virtual Machine (VM) running on Windows.
 
