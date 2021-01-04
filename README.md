@@ -5,7 +5,7 @@ This is the GitHub Repository for University of Southampton Group Design Project
 ## Table of Contents
 
 - [About](#about)
-- [Software In The Loop (SITL)](#software-in-the-loop)
+- [Software In The Loop](#software-in-the-loop)
 - [Dronekit](#dronekit)
 
 ## Software In The Loop
