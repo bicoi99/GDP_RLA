@@ -1,4 +1,4 @@
-# python 2.7.18
+#! /usr/bin/python
 
 from __future__ import print_function
 from dronekit import connect, VehicleMode, LocationGlobalRelative, Command
