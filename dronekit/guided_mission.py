@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 
 from __future__ import print_function
 from dronekit import connect, Command, LocationGlobalRelative, VehicleMode
@@ -68,14 +68,32 @@ def readmission(aFileName):
     return missionlist
 
 
+# # Calculate distance (m) from 2 locations
+# # dronekit implementation
+# def get_distance_metres(location1, location2):
+#     """
+#     Approximate distance (m) from dronekit guide
+#     """
+#     dlat = location1.lat - location2.lat
+#     dlon = location1.lon - location2.lon
+#     return math.sqrt(dlat**2 + dlon**2) * 1.113195e5\
+
 # Calculate distance (m) from 2 locations
+# MAVProxy implementation
 def get_distance_metres(location1, location2):
     """
-    Approximate distance (m) from dronekit guide
+    Approximate distance (m) from http://www.movable-type.co.uk/scripts/latlong.html
     """
-    dlat = location1.lat - location2.lat
-    dlon = location1.lon - location2.lon
-    return math.sqrt(dlat**2 + dlon**2) * 1.113195e5
+    lat1 = math.radians(location1.lat)
+    lon1 = math.radians(location1.lon)
+    lat2 = math.radians(location2.lat)
+    lon2 = math.radians(location2.lon)
+    dLat = lat2 - lat1
+    dLon = lon2 - lon1
+    a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * \
+        math.cos(lat1) * math.cos(lat2)
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
+    return 6378100.0 * c
 
 
 def distance_to_target(target):
@@ -109,8 +127,9 @@ for mission in missions:
         # if distance < 5 and vehicle.groundspeed < 0.1:
         if distance < 5:
             vehicle.mode = VehicleMode("HOLD")
-            while vehicle.groundspeed > 0.1:
-                print("Decelerating", vehicle.groundspeed)
+            while vehicle.groundspeed > 0.13:
+                print("Decelerating (speed: %4f, distance: %3f)" %
+                      (vehicle.groundspeed, distance_to_target(target)))
                 sleep(0.5)
             print("Reached waypoint", vehicle.groundspeed)
             sleep(2)  # Delay to ensure vehicle completely stop

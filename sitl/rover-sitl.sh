@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-# The script will go to Rover inside ardupilot and start up SITL
-# then it will forward the signal to the IP of RaspberryPi and 
-# computer
+# Check ardupilot is present in ../.. same layer as GDP_RLA
+# Use custom location rather than edit locations.txt
+# Option to use RPi
 
-# Go to Rover folder
-cd ardupilot/Rover
+# Check current directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "This script is run in the directory: $SCRIPT_DIR"
 
-# Get IP address of WSL to broadcast to computer for MissionPlanner to connect to. Use grep to get the nameserver role in resolve.conf, then use awk to print out the second column. Append the port 14550 to the end and store the string into variable wslIP.
-# To use commands inside string, use $() 
-wslIP="$(grep nameserver /etc/resolv.conf | awk '{print $2}'):14550"
+# Check if ardupilot is present in same layer as GDP_RLA
+ARDUPILOT_DIR="$( cd $SCRIPT_DIR/../.. && pwd )/ardupilot"
+if [ -d $ARDUPILOT_DIR ]; then
+	echo "$ARDUPILOT_DIR exists. SITL can start."
+else
+	echo "No ardupilot is found. Please clone this!"
+	exit 1
+fi
 
-# Raspberry Pi IP
-rpiIP="10.177.138.32:14550"
-
-../Tools/autotest/sim_vehicle.py -L Boldrewood --map --console \
-	--out $wslIP --out $rpiIP # use variable wslIP and rpiIP here
+# SITL
+# Get custom location from locations.txt
+CUSTOM_LOCATION="$( cat $SCRIPT_DIR/locations.txt | cut -d"=" -f2)"
+# Go to Rover
+cd $ARDUPILOT_DIR/Rover
+# Start SITL with map console and a custom location
+sim_vehicle.py --map --console --custom-location=$CUSTOM_LOCATION

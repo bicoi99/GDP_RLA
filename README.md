@@ -85,6 +85,14 @@ Now you can use your simulated Rover either using MissionPlanner by connecting t
 
 ### Using MAVProxy
 
+### Files
+
+- `install-prereqs-mint.sh` is modified script to install prerequisites for Linux Mint 20 (ulyana)
+- `locations.txt` file stores the custom location for SITL to start from. This might become uncessary cause the SITL activation script can take care of this on its own
+- `rla.parm` is the parmeter file to load in SITL, this only needs to be loaded once because the virtual eeprom can store parms afterwards
+- `rover-sitl.sh` is the script to launch SITL from this folder.
+- `wsl-rover-sitl.sh` is the script that is previously used inside of Windows WSL
+
 ## Dronekit
 
 Communication between the autopilot and the microprocessor that controls the aeration mechanism is not straight forward. The use of a master Raspberry Pi is being investigated and Dronekit is a Python API that allows a companion computer to control the Pixhawk.
