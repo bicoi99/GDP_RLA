@@ -125,7 +125,7 @@ for mission in missions:
         print(distance, vehicle.groundspeed)
         sleep(0.5)
         # if distance < 5 and vehicle.groundspeed < 0.1:
-        if distance < 5:
+        if distance < 1:
             vehicle.mode = VehicleMode("HOLD")
             while vehicle.groundspeed > 0.13:
                 print("Decelerating (speed: %4f, distance: %3f)" %

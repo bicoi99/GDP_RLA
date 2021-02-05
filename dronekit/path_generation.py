@@ -6,20 +6,8 @@ Lat - y-axis
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-
-# Larger polygon
-# # Polygon nodes
-# polygon = np.array([[50.9372662278670, -1.40498667955399],
-#                     [50.9373186255912, -1.40451461076736],
-#                     [50.9371107245959, -1.40445560216904],
-#                     [50.9370650876676, -1.40492901206017],
-#                     [50.9372662278670, -1.40498667955399]])
-
-# # Swap columns to get (lat, lon) to (x, y) where x=lon, y=lat
-# tmp = polygon[:, 0].copy()
-# polygon[:, 0] = polygon[:, 1].copy()
-# polygon[:, 1] = tmp.copy()
-# print(polygon)
+from dronekit import connect, Command
+from pymavlink import mavutil
 
 
 def get_polygon(file: str) -> np.ndarray:
@@ -161,18 +149,16 @@ def is_inside_polygon(polygon, point):
     return (intersect_cnt % 2 == 1)
 
 
-if __name__ == "__main__":
-    # Get polygon
-    polygon = get_polygon("dronekit/smaller_polygon.poly")
-    # -- Draw polygon
+def draw_polygon(polygon):
     plt.plot(polygon[:, 0], polygon[:, 1], 'x-')
     plt.title("Polygon")
     plt.xlabel("Longitude (deg)")
     plt.ylabel("Latitude (deg)")
     plt.tight_layout()
     plt.show()
-    # -- Draw grid
-    grid = generate_grid(polygon, 2)
+
+
+def draw_grid(grid, polygon):
     for row in grid:
         for point in row:
             plt.plot(point[0], point[1], 'kx')
@@ -182,7 +168,27 @@ if __name__ == "__main__":
     plt.ylabel("Latitude (deg)")
     plt.tight_layout()
     plt.show()
-    # -- Draw highlighted point
+
+
+def draw_highlighted_node(grid, polygon):
+    for row in grid:
+        for point in row:
+            if is_inside_polygon(polygon, point):
+                plt.plot(point[0], point[1], 'rx')
+            else:
+                plt.plot(point[0], point[1], 'kx')
+    plt.plot(polygon[:, 0], polygon[:, 1], 'x-')
+    plt.title("Nodes inside polygon")
+    plt.xlabel("Longitude (deg)")
+    plt.ylabel("Latitude (deg)")
+    plt.tight_layout()
+    plt.show()
+
+
+def save_mission_to_file(file, grid, polygon):
+    """
+    Mission consists of highlighted nodes in the right order
+    """
     # Format
     output = "QGC WPL 110\n"
     # Home location (need to change this dynamically)
@@ -193,19 +199,48 @@ if __name__ == "__main__":
             row = np.flip(row, 0)
         for point in row:
             if is_inside_polygon(polygon, point):
-                plt.plot(point[0], point[1], 'rx')
                 output += f"{count}\t0\t3\t16\t0.0\t0.0\t0.0\t0.0\t{point[1]:.8f}\t{point[0]:.8f}\t100.0\t1\n"
                 count += 1
-            else:
-                plt.plot(point[0], point[1], 'kx')
 
-    with open("dronekit/generated_path_inside_polygon.txt", "w") as f:
+    with open(file, "w") as f:
         f.write(output)
         f.close()
 
-    plt.plot(polygon[:, 0], polygon[:, 1], 'x-')
-    plt.title("Nodes inside polygon")
-    plt.xlabel("Longitude (deg)")
-    plt.ylabel("Latitude (deg)")
-    plt.tight_layout()
-    plt.show()
+
+def write_mission(cmds, grid, polygon):
+    print("Clear previous mission")
+    cmds.download()
+    cmds.wait_ready()
+    cmds.clear()
+    # Make highlighted nodes waypoints
+    print("Adding new missions")
+    for i, row in enumerate(grid):
+        if i % 2 == 1:
+            row = np.flip(row, 0)
+        for point in row:
+            if is_inside_polygon(polygon, point):
+                cmds.add(Command(
+                    0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                    mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0,
+                    point[1], point[0], 100
+                ))
+    # RTL
+    cmds.add(Command(
+        0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ))
+    print("Uploading mission")
+    cmds.upload()
+
+
+if __name__ == "__main__":
+    # Get polygon
+    polygon = get_polygon("dronekit/smaller_polygon.poly")
+    # Generate node grid
+    grid = generate_grid(polygon, 2)
+    draw_highlighted_node(grid, polygon)
+    # save_mission_to_file(
+    #     "dronekit/generated_path_inside_polygon.txt", grid, polygon)
+    print("Connecting to vehicle")
+    vehicle = connect("127.0.0.1:14550", wait_ready=True)
+    write_mission(vehicle.commands, grid, polygon)
