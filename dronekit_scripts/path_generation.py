@@ -4,6 +4,7 @@ Lat - y-axis
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import numpy as np
 import math
 from dronekit import connect, Command
@@ -233,14 +234,36 @@ def write_mission(cmds, grid, polygon):
     cmds.upload()
 
 
+def draw_highlighted_node(polygon_file_path, ax):
+    polygon = get_polygon(polygon_file_path)
+    grid = generate_grid(polygon, 2)
+    # Use matplotlib.figure Figure rather than pyplot Figure
+    # to avoid Tk not closing
+    for row in grid:
+        for point in row:
+            if is_inside_polygon(polygon, point):
+                ax.plot(point[0], point[1], 'rx')
+            else:
+                ax.plot(point[0], point[1], 'kx')
+    ax.plot(polygon[:, 0], polygon[:, 1], 'x-')
+    ax.set_title("Nodes inside polygon")
+    ax.set_xlabel("Longitude (deg)")
+    ax.set_ylabel("Latitude (deg)")
+    ax.set_facecolor("#d9d9d9")
+    # temp solution before OOP implemented
+    return polygon, grid
+
+
 if __name__ == "__main__":
     # Get polygon
-    polygon = get_polygon("dronekit/smaller_polygon.poly")
+    polygon = get_polygon("dronekit_scripts/lawn-polygon.poly")
     # Generate node grid
     grid = generate_grid(polygon, 2)
+    # draw_polygon(polygon)
+    # draw_grid(grid, polygon)
     draw_highlighted_node(grid, polygon)
-    # save_mission_to_file(
-    #     "dronekit/generated_path_inside_polygon.txt", grid, polygon)
+    save_mission_to_file(
+        "dronekit_scripts/generated_path_inside_polygon.txt", grid, polygon)
     print("Connecting to vehicle")
     vehicle = connect("127.0.0.1:14550", wait_ready=True)
     write_mission(vehicle.commands, grid, polygon)

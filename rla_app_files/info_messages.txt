@@ -1,0 +1,4 @@
+Welcome to RLA-Path Planner
+
+This application is used to generate "lawnmower" path for Mission Planner.
+Please import a .poly file to generate a path which will be displayed in a plot. Then you can write the generated path to a text file to be used in Mission Planner.
