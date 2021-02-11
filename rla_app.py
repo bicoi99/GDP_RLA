@@ -1,7 +1,7 @@
 import os
+import json
 from tkinter import *
 from tkinter import ttk
-from tkinter import font
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import dronekit_scripts.path_generation as backend
@@ -16,6 +16,16 @@ class MainApp(Tk):
         self.geometry("950x550")
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
+
+        # Get background colour to display on plot
+        bg_colour16 = self.winfo_rgb(self['bg'])
+        # Divide 16 bit R G B by 256 and convert to hex using format function,
+        # then join them as well as slap a # at the front
+        self.bg_colour = "#" + \
+            "".join(map(lambda x: format(x//256, 'x'), bg_colour16))
+
+        # Utils
+        self.files_folder = "rla_app_files"
 
         # Create main frame container to store other widgets
         self.mainframe = ttk.Frame(self, padding=3)
@@ -51,10 +61,16 @@ class MainApp(Tk):
             self.mainframe, self, borderwidth=1, relief='solid')
         self.plot_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
         # Draw start info page on top
+        # Get start page text
+        with open(os.path.join(os.getcwd(), self.files_folder, "info_text.json")) as f:
+            self.info_text = json.load(f)
         self.info_page = InfoPage(
             self.mainframe,
-            """Welcome to RLA-Path Planner\n\nThis application is used to generate "lawnmower" path for Mission Planner.\nPlease import a .poly file to generate a path which will be displayed in a plot. Then you can write the generated path to a text file to be used in Mission Planner.""",
-            borderwidth=1, relief='solid')
+            self.info_text['start_page']['title'],
+            self.info_text['start_page']['body'],
+            borderwidth=1,
+            relief='solid'
+        )
         self.info_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
 
     def update_plot_page(self):
@@ -62,7 +78,9 @@ class MainApp(Tk):
         # Clear old axes and redraw
         self.plot_page.ax.clear()
         temp = backend.draw_highlighted_node(
-            self.polygon_file_path, self.plot_page.ax
+            self.polygon_file_path,
+            self.plot_page.ax,
+            self.bg_colour
         )
         # temp solution before OOP implemented for backend
         self.polygon, self.grid = temp
@@ -70,7 +88,13 @@ class MainApp(Tk):
         self.plot_page.tkraise()
 
     def show_end_page(self):
-        self.info_page.info_msg.set("This is the end page")
+        self.info_page.title_msg.set(self.info_text['end_page']['title'])
+        self.info_page.info_msg.set(
+            self.info_text['end_page']['body'].format(
+                self.export_mission_widget.mission_file.get(),
+                self.import_polygon_widget.polygon_file.get()
+            )
+        )
         self.info_page.tkraise()
 
 
@@ -120,7 +144,7 @@ class ImportPolygon(ttk.Frame):
         # Get absolute path and plot the path
         self.controller.polygon_file_path = os.path.join(
             os.getcwd(),
-            "rla_app_files",
+            self.controller.files_folder,
             self.polygon_file.get()
         )
         self.controller.update_plot_page()
@@ -165,7 +189,7 @@ class ExportMission(ttk.Frame):
         # Get absolute path and write to file
         mission_file_name = os.path.join(
             os.getcwd(),
-            "rla_app_files",
+            self.controller.files_folder,
             self.mission_file.get()
         )
         backend.save_mission_to_file(
@@ -204,30 +228,23 @@ class UploadMission(ttk.Frame):
         pass
 
 
-# class PlotFrame(ttk.Frame):
-#     def __init__(self, master, *args, **kwargs):
-#         ttk.Frame.__init__(self, master, *args, **kwargs)
-#         self.info_msg = "Start"
-#         self.info_page = InfoPage(self, self.info_msg)
-#         self.info_page.grid(row=0, column=0, sticky='nwse')
-#         self.columnconfigure(0, weight=1)
-#         self.rowconfigure(0, weight=1)
-
-#     def show_plot_page(self):
-#         self.plot_page = PlotPage(self)
-#         self.plot_page.grid(row=0, column=0, sticky='nwse')
-
-
 class InfoPage(ttk.Frame):
-    def __init__(self, master, info_msg, *args, **kwargs):
+    def __init__(self, master, title_msg, info_msg, *args, **kwargs):
         ttk.Frame.__init__(self, master, *args, **kwargs)
-        description_font = font.Font(family='Helvetica', size=16)
+        self.title_msg = StringVar(value=title_msg)
         self.info_msg = StringVar(value=info_msg)
-        display_text = ttk.Label(
-            self, textvariable=self.info_msg, font=description_font)
-        display_text.grid(row=0, column=0)
+        text_title = ttk.Label(
+            self, textvariable=self.title_msg,
+            font="TkDefaultFont 16 bold"
+        )
+        text_title.grid(row=0, column=0, sticky='s')
+        text_body = ttk.Label(
+            self, textvariable=self.info_msg,
+            font="TkTextFont", wraplength=650)
+        text_body.grid(row=1, column=0, sticky='n', pady=10)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
 
 class PlotPage(ttk.Frame):
@@ -237,7 +254,7 @@ class PlotPage(ttk.Frame):
         # Plot
         # Initialise matplotlib.figure.Figure rather than pyplot.Figure
         # to avoid tk not closing
-        fig = Figure(tight_layout=True, facecolor="#d9d9d9")
+        fig = Figure(tight_layout=True, facecolor=self.controller.bg_colour)
         # Generate axes to be drawn on later
         self.ax = fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(fig, self)

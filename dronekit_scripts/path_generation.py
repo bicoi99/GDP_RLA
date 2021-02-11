@@ -234,7 +234,7 @@ def write_mission(cmds, grid, polygon):
     cmds.upload()
 
 
-def draw_highlighted_node(polygon_file_path, ax):
+def draw_highlighted_node(polygon_file_path, ax, bg_colour):
     polygon = get_polygon(polygon_file_path)
     grid = generate_grid(polygon, 2)
     # Use matplotlib.figure Figure rather than pyplot Figure
@@ -246,22 +246,22 @@ def draw_highlighted_node(polygon_file_path, ax):
             else:
                 ax.plot(point[0], point[1], 'kx')
     ax.plot(polygon[:, 0], polygon[:, 1], 'x-')
-    ax.set_title("Nodes inside polygon")
+    ax.set_title("Path")
     ax.set_xlabel("Longitude (deg)")
     ax.set_ylabel("Latitude (deg)")
-    ax.set_facecolor("#d9d9d9")
+    ax.set_facecolor(bg_colour)
     # temp solution before OOP implemented
     return polygon, grid
 
 
 if __name__ == "__main__":
     # Get polygon
-    polygon = get_polygon("dronekit_scripts/lawn-polygon.poly")
+    polygon = get_polygon("rla_app_files/lawn-polygon.poly")
     # Generate node grid
     grid = generate_grid(polygon, 2)
     # draw_polygon(polygon)
     # draw_grid(grid, polygon)
-    draw_highlighted_node(grid, polygon)
+    # draw_highlighted_node(grid, polygon)
     save_mission_to_file(
         "dronekit_scripts/generated_path_inside_polygon.txt", grid, polygon)
     print("Connecting to vehicle")
