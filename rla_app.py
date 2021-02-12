@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-from rla_app_files.path_generation_backend import PathPlanner
+from rla_app_files.path_planner import PathPlanner
 
 
 class MainApp(Tk):
