@@ -171,7 +171,7 @@ def draw_grid(grid, polygon):
     plt.show()
 
 
-def draw_highlighted_node(grid, polygon):
+def draw_highlighted_node_old(grid, polygon):
     for row in grid:
         for point in row:
             if is_inside_polygon(polygon, point):

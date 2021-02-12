@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-import dronekit_scripts.path_generation as backend
+from rla_app_files.path_generation_backend import PathPlanner
 
 
 class MainApp(Tk):
@@ -76,20 +76,6 @@ class MainApp(Tk):
         )
         self.info_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
 
-    def update_plot_page(self):
-        # Can move this to ImportPolygon method
-        # Clear old axes and redraw
-        self.plot_page.ax.clear()
-        temp = backend.draw_highlighted_node(
-            self.polygon_file_path,
-            self.plot_page.ax,
-            self.bg_colour
-        )
-        # temp solution before OOP implemented for backend
-        self.polygon, self.grid = temp
-        self.plot_page.canvas.draw()
-        self.plot_page.tkraise()
-
     def show_end_page(self):
         self.info_page.title_msg.set(self.info_text['end_page']['title'])
         self.info_page.info_msg.set(
@@ -146,13 +132,26 @@ class ImportPolygon(ttk.Frame):
         connect_button.grid(column=1, row=1, sticky='e')
 
     def import_polygon(self):
-        # Get absolute path and plot the path
-        self.controller.polygon_file_path = os.path.join(
+        # Get absolute path for polygon file
+        self.polygon_file_path = os.path.join(
             os.getcwd(),
             self.controller.files_folder,
             self.polygon_file.get()
         )
-        self.controller.update_plot_page()
+        # Clear old axis
+        self.controller.plot_page.ax.clear()
+        # Make backend using fetched polygon file path
+        self.controller.backend = PathPlanner(
+            self.polygon_file_path,
+            self.controller.plot_page.ax,
+            self.controller.bg_colour
+        )
+        # Draw on new axis
+        self.controller.backend.plot_path()
+        # Update and rase the widget
+        self.controller.plot_page.canvas.draw()
+        self.controller.plot_page.tkraise()
+
         # Enable writing to file
         self.controller.export_mission_widget.export_button.state([
                                                                   '!disabled'])
@@ -200,11 +199,8 @@ class ExportMission(ttk.Frame):
             self.controller.files_folder,
             self.mission_file.get()
         )
-        backend.save_mission_to_file(
-            mission_file_name,
-            self.controller.grid,
-            self.controller.polygon
-        )
+        self.controller.backend.export_path(
+            mission_file_name)
         # Display end page
         self.controller.show_end_page()
         # Enable graph toggle
