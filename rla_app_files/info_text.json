@@ -1,10 +1,10 @@
 {
     "start_page": {
         "title": "Welcome to RLA - Path Planner",
-        "body": "This application is used to generate a 'lawnmower' path for use inside Mission Planner software. Please import a polygon (.poly) file to begin path planning. Once done, the path will be displayed on the right hand side plot. If you are happy, export the path the a text (.txt) file to be used in Mission Planner."
+        "body": "This application is used to generate a 'lawnmower' path for use inside Mission Planner software.\n\nFirst, please use Mission Planner to create a polygon and save it (preferably with the name 'lawn-polygon.poly') in the following directory:\n'{}'.\n\nThen, you can press 'Import' (if you saved the file with another name, then retype the name of the file before pressing the button) to import the polygon file you have created to begin path planning.\n\nOnce done, the path will be displayed on the right hand side plot. If you are happy, press 'Export' export the path as a text file called 'polygon-path.txt' (type another name to the entry box if you want the file to be named different to the default) to the directory:\n'{}'."
     },
     "end_page": {
         "title": "Export successful!",
-        "body": "Path successfully exported to '{}' in the same folder to polygon file '{}'. Path can be imported to Mission Planner. To view path plot again, use Hide/Show toggle underneath export mission."
+        "body": "Path successfully exported with full path:\n'{}'.\nTo view path plot again, use Hide/Show toggle underneath export mission.\n\nNow, navigate back to Mission Planner and use 'Load File' to open the generated path file."
     }
 }

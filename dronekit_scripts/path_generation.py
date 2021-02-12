@@ -193,7 +193,8 @@ def save_mission_to_file(file, grid, polygon):
     # Format
     output = "QGC WPL 110\n"
     # Home location (need to change this dynamically)
-    output += "0\t1\t0\t16\t0\t0\t0\t0\t50.937248\t-1.404930\t-0.060000\t1\n"
+    # Currently disabled because no need to change location, MP will figure out automatically
+    # output += "0\t1\t0\t16\t0\t0\t0\t0\t50.937248\t-1.404930\t-0.060000\t1\n"
     count = 1
     for i, row in enumerate(grid):
         if i % 2 == 1:

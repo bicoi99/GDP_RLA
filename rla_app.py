@@ -25,7 +25,7 @@ class MainApp(Tk):
             "".join(map(lambda x: format(x//256, 'x'), bg_colour16))
 
         # Utils
-        self.files_folder = "rla_app_files"
+        self.files_folder = os.path.join(os.getcwd(), "rla_app_files")
 
         # Create main frame container to store other widgets
         self.mainframe = ttk.Frame(self, padding=3)
@@ -62,12 +62,15 @@ class MainApp(Tk):
         self.plot_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
         # Draw start info page on top
         # Get start page text
-        with open(os.path.join(os.getcwd(), self.files_folder, "info_text.json")) as f:
+        with open(os.path.join(self.files_folder, "info_text.json")) as f:
             self.info_text = json.load(f)
         self.info_page = InfoPage(
             self.mainframe,
             self.info_text['start_page']['title'],
-            self.info_text['start_page']['body'],
+            self.info_text['start_page']['body'].format(
+                self.files_folder,
+                self.files_folder
+            ),
             borderwidth=1,
             relief='solid'
         )
@@ -91,8 +94,10 @@ class MainApp(Tk):
         self.info_page.title_msg.set(self.info_text['end_page']['title'])
         self.info_page.info_msg.set(
             self.info_text['end_page']['body'].format(
-                self.export_mission_widget.mission_file.get(),
-                self.import_polygon_widget.polygon_file.get()
+                os.path.join(
+                    self.files_folder,
+                    self.export_mission_widget.mission_file.get()
+                )
             )
         )
         self.info_page.tkraise()
@@ -151,6 +156,9 @@ class ImportPolygon(ttk.Frame):
         # Enable writing to file
         self.controller.export_mission_widget.export_button.state([
                                                                   '!disabled'])
+        # Ensure that Hide/Show button is disabled and it is not on True
+        self.controller.export_mission_widget.plot_toggle.state(['disabled'])
+        self.controller.export_mission_widget.plot_show.set(False)
 
 
 class ExportMission(ttk.Frame):
