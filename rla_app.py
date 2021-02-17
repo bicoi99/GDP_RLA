@@ -1,5 +1,6 @@
 import os
 import json
+import platform
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -9,7 +10,7 @@ from rla_app_files.path_planner import PathPlanner
 
 
 class MainApp(Tk):
-    def __init__(self) -> None:
+    def __init__(self):
         # Set up main window
         Tk.__init__(self)
         self.wm_title("Robotic Lawn Aerator - Path Planner")
@@ -18,6 +19,19 @@ class MainApp(Tk):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
+        # Utils
+        self.files_folder = os.path.join(os.getcwd(), "rla_app_files")
+        with open(os.path.join(self.files_folder, "info_text.json")) as f:
+            self.info_text = json.load(f)
+
+        # Icon display only on windows
+        if platform.system() == "Windows":
+            self.wm_iconbitmap(
+                os.path.join(
+                    self.files_folder, "rla-logo.ico"
+                )
+            )
+
         # Get background colour to display on plot
         bg_colour16 = self.winfo_rgb(self['bg'])
         # Divide 16 bit R G B by 256 and convert to hex using format function,
@@ -25,27 +39,16 @@ class MainApp(Tk):
         self.bg_colour = "#" + \
             "".join(map(lambda x: format(x//256, 'x'), bg_colour16))
 
-        # Utils
-        self.files_folder = os.path.join(os.getcwd(), "rla_app_files")
-
         # Menu bar
         self.option_add('*tearOff', FALSE)
         self.menubar = Menu(self)
         self['menu'] = self.menubar
-        # File menu
-        self.menu_file = Menu(self.menubar)
-        self.menubar.add_cascade(menu=self.menu_file, label="File")
-        self.menu_file.add_command(label="Not supported yet")
         # Help menu
         self.menu_help = Menu(self.menubar)
         self.menubar.add_cascade(menu=self.menu_help, label="Help")
-        self.help_show = BooleanVar()
-        self.menu_help.add_checkbutton(
+        self.menu_help.add_command(
             label="Show help page",
-            command=self.show_help_page,
-            variable=self.help_show,
-            onvalue=True,
-            offvalue=False
+            command=self.show_help_page
         )
 
         # Create main frame container to store other widgets
@@ -67,80 +70,44 @@ class MainApp(Tk):
             self.mainframe, self, padding=(10, 3))
         self.export_mission_widget.grid(column=0, row=1, sticky='n')
         # Logo
-        self.logo = Logo(self.mainframe, self)
-        self.logo.grid(column=0, row=2, sticky='s')
+        self.logo_img = PhotoImage(file=os.path.join(
+            self.files_folder, "rla-logo.png"
+        ))
+        self.logo_label = ttk.Label(self.mainframe, image=self.logo_img)
+        self.logo_label.grid(column=0, row=2, sticky='s')
 
         # Plot widgets (right hand side)
-        # Initialise plot page first
-        self.plot_page = PlotPage(
-            self.mainframe, self, borderwidth=1, relief='solid')
-        self.plot_page.grid(column=1, row=0, rowspan=3, sticky='nwse')
-        # Draw start info page on top
-        # Get start page text
-        with open(os.path.join(self.files_folder, "info_text.json")) as f:
-            self.info_text = json.load(f)
-        self.info_page = InfoPage(
-            self.mainframe,
-            self.info_text['start_page']['title'],
-            self.info_text['start_page']['body'].format(
-                self.files_folder,
-                self.files_folder
-            ),
-            borderwidth=1,
-            relief='solid'
-        )
-        self.info_page.grid(column=1, row=0, rowspan=3, sticky='nwse')
-
-    def show_end_page(self):
-        self.info_page.title_msg.set(self.info_text['end_page']['title'])
-        self.info_page.info_msg.set(
-            self.info_text['end_page']['body'].format(
-                os.path.join(
-                    self.files_folder,
-                    self.export_mission_widget.mission_file.get()
-                )
-            )
-        )
-        self.info_page.tkraise()
+        # Frame to house pages
+        self.right_frame = ttk.Frame(
+            self.mainframe, borderwidth=1, relief='solid')
+        self.right_frame.grid(column=1, row=0, rowspan=3, sticky='nwse')
+        self.right_frame.columnconfigure(0, weight=1)
+        self.right_frame.rowconfigure(0, weight=1)
+        # Draw end page
+        self.end_page = EndPage(self.right_frame, self)
+        self.end_page.grid(column=0, row=0, sticky='nwse')
+        # Draw plot page
+        self.plot_page = PlotPage(self.right_frame, self)
+        self.plot_page.grid(column=0, row=0, sticky='nwse')
+        # Draw start page last to make it visible
+        self.start_page = StartPage(self.right_frame, self)
+        self.start_page.grid(column=0, row=0, sticky='nwse')
 
     def show_help_page(self):
-        pass
-        # Need to split start and end page
-        # start page is the help page
+        help_page = Toplevel()
+        help_page.wm_title("Help Page")
+        help_page.wm_resizable(False, False)
 
+        help_mainframe = ttk.Frame(help_page)
+        help_mainframe.grid(row=0, column=0)
 
-class Logo(ttk.Frame):
-    def __init__(self, master, controller, *args, **kwargs):
-        ttk.Frame.__init__(self, master, *args, **kwargs)
-        img = PhotoImage(file=os.path.join(
-            controller.files_folder, "rla-logo.png"
-        ))
-        label = ttk.Label(self, text="test", image=img)
-        label.image = img
-        label.grid(column=0, row=0, sticky='nwse')
+        help_start_page = StartPage(help_mainframe, self)
+        help_start_page.grid(row=0, column=0, sticky='nwse')
 
-
-class ConnectToVehicle(ttk.Frame):
-    def __init__(self, master, *args, **kwargs):
-        ttk.Frame.__init__(self, master, *args, **kwargs)
-
-        # Label to explain the widget
-        label = ttk.Label(self, text="Connect to vehicle:")
-        label.grid(column=0, row=0, sticky='w')
-        # Entry to take in connection string
-        self.connection_string = StringVar(value="127.0.0.1:14550")
-        connection_string_entry = ttk.Entry(
-            self, textvariable=self.connection_string
-        )
-        connection_string_entry.grid(column=0, row=1)
-        # Button to initiate connect to vehicle callback
-        connect_button = ttk.Button(
-            self, text="Connect", command=self.connect_to_vehicle)
-        connect_button.state(['disabled'])
-        connect_button.grid(column=1, row=1, sticky='e')
-
-    def connect_to_vehicle(self):
-        print(self.connection_string.get())
+        help_close_button = ttk.Button(
+            help_mainframe, text="Close",
+            command=help_page.destroy)
+        help_close_button.grid(row=1, column=0, sticky='s')
 
 
 class ImportPolygon(ttk.Frame):
@@ -271,8 +238,13 @@ class ExportMission(ttk.Frame):
     def export_mission(self):
         self.controller.backend.export_path(
             self.mission_file.get())
-        # Display end page
-        self.controller.show_end_page()
+        # Display end page, get path from export widget
+        self.controller.end_page.info_msg.set(
+            self.controller.info_text['end_page']['body'].format(
+                self.controller.export_mission_widget.mission_file.get()
+            )
+        )
+        self.controller.end_page.tkraise()
         # Enable graph toggle
         self.plot_toggle.state(['!disabled'])
 
@@ -280,33 +252,42 @@ class ExportMission(ttk.Frame):
         if self.plot_show.get():
             self.controller.plot_page.tkraise()
         else:
-            self.controller.info_page.tkraise()
+            self.controller.end_page.tkraise()
 
 
-class UploadMission(ttk.Frame):
+class StartPage(ttk.Frame):
     def __init__(self, master, controller, *args, **kwargs):
         ttk.Frame.__init__(self, master, *args, **kwargs)
-        self.controller = controller
-        # Label to explain the widget
-        label = ttk.Label(self, text="Upload mission:")
-        label.grid(column=0, row=0, sticky='w')
-        # Button to upload mission to SITL or Cube
-        upload_button = ttk.Button(
-            self, text="Upload", command=self.upload_mission)
-        # Disable this feature for now since differences found between
-        # upload to vehicle and export to MP
-        upload_button.state(['disabled'])
-        upload_button.grid(column=1, row=0, sticky='e')
+        self.title_msg = StringVar(
+            value=controller.info_text['start_page']['title'])
+        self.info_msg = StringVar(
+            value=controller.info_text['start_page']['body'].format(
+                controller.files_folder,
+                controller.files_folder
+            ))
+        text_title = ttk.Label(
+            self, textvariable=self.title_msg,
+            font="TkDefaultFont 16 bold"
+        )
+        text_title.grid(row=0, column=0, sticky='s')
+        text_body = ttk.Label(
+            self, textvariable=self.info_msg,
+            font="TkTextFont", wraplength=650)
+        text_body.grid(row=1, column=0, sticky='n', pady=10)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
-    def upload_mission(self):
-        pass
 
-
-class InfoPage(ttk.Frame):
-    def __init__(self, master, title_msg, info_msg, *args, **kwargs):
+class EndPage(ttk.Frame):
+    def __init__(self, master, controller, *args, **kwargs):
         ttk.Frame.__init__(self, master, *args, **kwargs)
-        self.title_msg = StringVar(value=title_msg)
-        self.info_msg = StringVar(value=info_msg)
+        self.title_msg = StringVar(
+            value=controller.info_text['end_page']['title'])
+        self.info_msg = StringVar(
+            value=controller.info_text['end_page']['body'].format(
+                controller.export_mission_widget.mission_file.get()
+            ))
         text_title = ttk.Label(
             self, textvariable=self.title_msg,
             font="TkDefaultFont 16 bold"
