@@ -2,6 +2,7 @@ import os
 import json
 from tkinter import *
 from tkinter import ttk
+from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from rla_app_files.path_planner import PathPlanner
@@ -27,6 +28,26 @@ class MainApp(Tk):
         # Utils
         self.files_folder = os.path.join(os.getcwd(), "rla_app_files")
 
+        # Menu bar
+        self.option_add('*tearOff', FALSE)
+        self.menubar = Menu(self)
+        self['menu'] = self.menubar
+        # File menu
+        self.menu_file = Menu(self.menubar)
+        self.menubar.add_cascade(menu=self.menu_file, label="File")
+        self.menu_file.add_command(label="Not supported yet")
+        # Help menu
+        self.menu_help = Menu(self.menubar)
+        self.menubar.add_cascade(menu=self.menu_help, label="Help")
+        self.help_show = BooleanVar()
+        self.menu_help.add_checkbutton(
+            label="Show help page",
+            command=self.show_help_page,
+            variable=self.help_show,
+            onvalue=True,
+            offvalue=False
+        )
+
         # Create main frame container to store other widgets
         self.mainframe = ttk.Frame(self, padding=3)
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
@@ -34,7 +55,6 @@ class MainApp(Tk):
         self.mainframe.rowconfigure(0, weight=1)
         self.mainframe.rowconfigure(1, weight=1)
         self.mainframe.rowconfigure(2, weight=1)
-        self.mainframe.rowconfigure(3, weight=1)
         # Plot column scales while action column stays the same
         self.mainframe.columnconfigure(1, weight=1)
 
@@ -46,20 +66,15 @@ class MainApp(Tk):
         self.export_mission_widget = ExportMission(
             self.mainframe, self, padding=(10, 3))
         self.export_mission_widget.grid(column=0, row=1, sticky='n')
-        # Action widget: connect to vehicle
-        self.connect_to_vehicle_widget = ConnectToVehicle(
-            self.mainframe, padding=(10, 3))
-        self.connect_to_vehicle_widget.grid(column=0, row=2, sticky='n')
-        # Action widget: upload mission (need to connect to vehicle first)
-        self.upload_mission_widget = UploadMission(
-            self.mainframe, self, padding=(10, 3))
-        self.upload_mission_widget.grid(column=0, row=3, sticky='ne')
+        # Logo
+        self.logo = Logo(self.mainframe, self)
+        self.logo.grid(column=0, row=2, sticky='s')
 
         # Plot widgets (right hand side)
         # Initialise plot page first
         self.plot_page = PlotPage(
             self.mainframe, self, borderwidth=1, relief='solid')
-        self.plot_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
+        self.plot_page.grid(column=1, row=0, rowspan=3, sticky='nwse')
         # Draw start info page on top
         # Get start page text
         with open(os.path.join(self.files_folder, "info_text.json")) as f:
@@ -74,7 +89,7 @@ class MainApp(Tk):
             borderwidth=1,
             relief='solid'
         )
-        self.info_page.grid(column=1, row=0, rowspan=4, sticky='nwse')
+        self.info_page.grid(column=1, row=0, rowspan=3, sticky='nwse')
 
     def show_end_page(self):
         self.info_page.title_msg.set(self.info_text['end_page']['title'])
@@ -87,6 +102,22 @@ class MainApp(Tk):
             )
         )
         self.info_page.tkraise()
+
+    def show_help_page(self):
+        pass
+        # Need to split start and end page
+        # start page is the help page
+
+
+class Logo(ttk.Frame):
+    def __init__(self, master, controller, *args, **kwargs):
+        ttk.Frame.__init__(self, master, *args, **kwargs)
+        img = PhotoImage(file=os.path.join(
+            controller.files_folder, "rla-logo.png"
+        ))
+        label = ttk.Label(self, text="test", image=img)
+        label.image = img
+        label.grid(column=0, row=0, sticky='nwse')
 
 
 class ConnectToVehicle(ttk.Frame):
@@ -118,31 +149,50 @@ class ImportPolygon(ttk.Frame):
         self.controller = controller
 
         # Label to explain the widget
-        label = ttk.Label(self, text="Import polygon:")
+        label = ttk.Label(self, text="Choose polygon file to import:")
         label.grid(column=0, row=0, sticky='w')
-        # Entry to take in connection string
-        self.polygon_file = StringVar(value="lawn-polygon.poly")
-        polygon_file_entry = ttk.Entry(
-            self, textvariable=self.polygon_file
-        )
-        polygon_file_entry.grid(column=0, row=1)
-        # Button to initiate connect to vehicle callback
-        connect_button = ttk.Button(
-            self, text="Import", command=self.import_polygon)
-        connect_button.grid(column=1, row=1, sticky='e')
-
-    def import_polygon(self):
-        # Get absolute path for polygon file
-        self.polygon_file_path = os.path.join(
+        # Entry to import file path
+        self.polygon_file = StringVar(value=os.path.join(
             os.getcwd(),
             self.controller.files_folder,
-            self.polygon_file.get()
+            "lawn-polygon.poly"))
+        polygon_file_entry = ttk.Entry(
+            self, textvariable=self.polygon_file, width=30
         )
+        polygon_file_entry.xview_moveto(1)
+        polygon_file_entry.grid(column=0, row=1, sticky='we')
+        # Browse button to browse file path
+        browse_icon = PhotoImage(file=os.path.join(
+            controller.files_folder, "search-folder-icon.png"
+        ))
+        browse_button = Button(
+            self, image=browse_icon, height=18, width=18,
+            command=self.browse_file
+        )
+        browse_button.image = browse_icon
+        browse_button.grid(column=1, row=1)
+        # Import button
+        import_button = ttk.Button(
+            self, text="Import", command=self.import_polygon)
+        import_button.grid(column=0, row=2, columnspan=2)
+
+    def browse_file(self):
+        file_name = filedialog.askopenfilename(
+            initialdir=self.controller.files_folder,
+            initialfile="lawn-polygon.poly",
+            filetypes=[
+                ("Polygon files", "*.poly"),
+                ("All files", "*.*")
+            ]
+        )
+        self.polygon_file.set(file_name)
+
+    def import_polygon(self):
         # Clear old axis
         self.controller.plot_page.ax.clear()
         # Make backend using fetched polygon file path
         self.controller.backend = PathPlanner(
-            self.polygon_file_path,
+            self.polygon_file.get(),
             self.controller.plot_page.ax,
             self.controller.bg_colour
         )
@@ -165,20 +215,35 @@ class ExportMission(ttk.Frame):
         ttk.Frame.__init__(self, master, *args, **kwargs)
         self.controller = controller
         # Label to explain the widget
-        label = ttk.Label(self, text="Export mission:")
+        label = ttk.Label(self, text="Choose location of export file:")
         label.grid(column=0, row=0, sticky='w')
-        # Entry to take in connection string
-        self.mission_file = StringVar(value="polygon-path.txt")
+        # Entry to get location export file
+        self.mission_file = StringVar(value=os.path.join(
+            os.getcwd(),
+            self.controller.files_folder,
+            "polygon-path.txt"))
         mission_file_entry = ttk.Entry(
-            self, textvariable=self.mission_file
+            self, textvariable=self.mission_file, width=30
         )
-        mission_file_entry.grid(column=0, row=1)
-        # Button to initiate connect to vehicle callback
+        # Display the right of the text
+        mission_file_entry.xview_moveto(1)
+        mission_file_entry.grid(column=0, row=1, sticky='we')
+        # Browse button to browse file path
+        browse_icon = PhotoImage(file=os.path.join(
+            controller.files_folder, "search-folder-icon.png"
+        ))
+        browse_button = Button(
+            self, image=browse_icon, height=18, width=18,
+            command=self.browse_file
+        )
+        browse_button.image = browse_icon
+        browse_button.grid(column=1, row=1)
+        # Button to export mission to file
         self.export_button = ttk.Button(
-            self, text="Write", command=self.export_mission)
+            self, text="Export", command=self.export_mission)
         # Disable if haven't imported polygon
         self.export_button.state(['disabled'])
-        self.export_button.grid(column=1, row=1, sticky='e')
+        self.export_button.grid(column=0, row=2, columnspan=2)
         # Toggle box to turn plot
         self.plot_show = BooleanVar()
         self.plot_toggle = ttk.Checkbutton(
@@ -190,17 +255,22 @@ class ExportMission(ttk.Frame):
         )
         # Disable if haven't exported
         self.plot_toggle.state(['disabled'])
-        self.plot_toggle.grid(column=0, row=2, sticky='e')
+        self.plot_toggle.grid(column=0, row=3, columnspan=2)
+
+    def browse_file(self):
+        file_name = filedialog.asksaveasfilename(
+            initialdir=self.controller.files_folder,
+            initialfile="polygon-path.txt",
+            filetypes=[
+                ("Supported files", "*.txt *.mission"),
+                ("All files", "*.*")
+            ]
+        )
+        self.mission_file.set(file_name)
 
     def export_mission(self):
-        # Get absolute path and write to file
-        mission_file_name = os.path.join(
-            os.getcwd(),
-            self.controller.files_folder,
-            self.mission_file.get()
-        )
         self.controller.backend.export_path(
-            mission_file_name)
+            self.mission_file.get())
         # Display end page
         self.controller.show_end_page()
         # Enable graph toggle
