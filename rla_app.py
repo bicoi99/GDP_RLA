@@ -97,6 +97,12 @@ class MainApp(Tk):
         help_page = Toplevel()
         help_page.wm_title("Help Page")
         help_page.wm_resizable(False, False)
+        if platform.system() == "Windows":
+            help_page.wm_iconbitmap(
+                os.path.join(
+                    self.files_folder, "rla-logo.ico"
+                )
+            )
 
         help_mainframe = ttk.Frame(help_page)
         help_mainframe.grid(row=0, column=0)
