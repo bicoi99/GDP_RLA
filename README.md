@@ -129,6 +129,8 @@ Now you are ready to run the app from source, just type and a window will pop up
 python rla_app.py
 ```
 
+### Compiling the code from source
+
 ## Software In The Loop
 
 Here is a guide of how to setup SITL for Linux or Linux Virtual Machine (VM) running on Windows.
