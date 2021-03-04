@@ -4,6 +4,7 @@ import argparse
 from dronekit import LocationGlobalRelative, VehicleMode, connect
 import math
 from time import sleep
+import serial
 
 
 def _get_distance_metres(lon1, lat1, lon2, lat2):
@@ -47,6 +48,10 @@ if __name__ == "__main__":
         print("No arguments were passed, use 0.0.0.0:14550 as default")
         connection_string = "0.0.0.0:14550"
 
+    # Serial port
+    ser = serial.Serial('/dev/ttyACM0', baudrate=9600, timeout=1)
+    sleep(2)
+
     # Connect to vehicle
     print(f"Connect to vehicle at {connection_string}")
     vehicle = connect(connection_string, wait_ready=True)
@@ -66,7 +71,7 @@ if __name__ == "__main__":
     # Loop over all mission
     for mission in missions:
         # Wait for user input
-        input(f"Press 'Enter' to go to waypoint {mission.seq}/{num_missions}")
+        # input(f"Press 'Enter' to go to waypoint {mission.seq}/{num_missions}")
         # Display target long, lat coord
         print(
             f"Going to waypoint {mission.seq}: ({mission.x:.7f}, {mission.y:.7f})")
@@ -99,6 +104,16 @@ if __name__ == "__main__":
                     f"Waypoint {mission.seq} is reached, current speed: {vehicle.groundspeed:.3f}")
                 sleep(2)  # Delay for vehicle to come to complete stop
                 print("Signal sent to Arduino to start drilling")
+                ser.write(b'1')
+                print("Drilling started")
+                while True:
+                    arduino_msg = ser.read().decode('utf-8')
+                    if arduino_msg == '\x01':
+                        print("Drilling has finished!")
+                        sleep(3)
+                        break
+                    else:
+                        print("Drilling is on-going")
                 break
     # Return to launch after all missions have finished
     vehicle.mode = VehicleMode("RTL")
