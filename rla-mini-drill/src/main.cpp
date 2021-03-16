@@ -50,7 +50,7 @@ void drilling() {
     lcd.clear();
     lcd.print("Drilling...");
     // Turn DC motor
-    analogWrite(motorPin, 128);
+    analogWrite(motorPin, 200);
     // Stepper motor forward
     myStepper.moveTo(500);
     while (myStepper.distanceToGo() != 0) {

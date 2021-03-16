@@ -124,30 +124,46 @@ class ImportPolygon(ttk.Frame):
         # Label to explain the widget
         label = ttk.Label(self, text="Choose polygon file to import:")
         label.grid(column=0, row=0, sticky='w')
+        # Path frame to store entry and browse button
+        path_frame = ttk.Frame(self)
+        path_frame.grid(column=0, row=1, sticky='nwse')
+        # Import frame to store gap chooser and import button
+        import_frame = ttk.Frame(self)
+        import_frame.grid(column=0, row=2, sticky='nwse')
+        import_frame.rowconfigure(0, weight=1)
+        import_frame.columnconfigure(1, weight=1)
+        import_frame.columnconfigure(2, weight=1)
         # Entry to import file path
         self.polygon_file = StringVar(value=os.path.join(
             os.getcwd(),
             self.controller.files_folder,
             "lawn-polygon.poly"))
         polygon_file_entry = ttk.Entry(
-            self, textvariable=self.polygon_file, width=30
+            path_frame, textvariable=self.polygon_file, width=30
         )
         polygon_file_entry.xview_moveto(1)
-        polygon_file_entry.grid(column=0, row=1, sticky='we')
+        polygon_file_entry.grid(column=0, row=0, sticky='we')
         # Browse button to browse file path
         browse_icon = PhotoImage(file=os.path.join(
             controller.files_folder, "search-folder-icon.png"
         ))
         browse_button = Button(
-            self, image=browse_icon, height=18, width=18,
+            path_frame, image=browse_icon, height=18, width=18,
             command=self.browse_file
         )
         browse_button.image = browse_icon
-        browse_button.grid(column=1, row=1)
+        browse_button.grid(column=1, row=0)
+        # Gap chooser
+        gap_label = ttk.Label(import_frame, text="Nodes gap (m): ")
+        gap_label.grid(column=0, row=0, sticky='w')
+        self.node_gap = StringVar(value='2')
+        gap_chooser = ttk.Spinbox(import_frame, from_=1.0, to=5.0,
+                                  width=5, textvariable=self.node_gap)
+        gap_chooser.grid(column=1, row=0, sticky='w')
         # Import button
         import_button = ttk.Button(
-            self, text="Import", command=self.import_polygon)
-        import_button.grid(column=0, row=2, columnspan=2)
+            import_frame, text="Import", command=self.import_polygon)
+        import_button.grid(column=2, row=0, sticky='e')
 
     def browse_file(self):
         file_name = filedialog.askopenfilename(
@@ -167,7 +183,8 @@ class ImportPolygon(ttk.Frame):
         self.controller.backend = PathPlanner(
             self.polygon_file.get(),
             self.controller.plot_page.ax,
-            self.controller.bg_colour
+            self.controller.bg_colour,
+            gap_in_metres=int(self.node_gap.get())
         )
         # Draw on new axis
         self.controller.backend.plot_path()

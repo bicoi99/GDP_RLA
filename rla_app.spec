@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 block_cipher = None
 added_files = [
     ("rla_app_files/info_text.json",
@@ -16,7 +17,7 @@ added_files = [
     "rla_app_files")
 ]
 a = Analysis(['rla_app.py'],
-             pathex=['C:\\Users\\Bi\\Documents\\GitHub_Repo\\GDP_RLA'],
+             pathex=[os.getcwd()],
              binaries=[],
              datas=added_files,
              hiddenimports=[],

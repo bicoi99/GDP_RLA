@@ -1,71 +1,82 @@
 # GDP_RLA
 
-This is the GitHub Repository for University of Southampton Group Design Project Robotic Lawn Aerator.
+This is the repository for the project Robotic Lawn Aerator, a University of Southampton Group Design Project, and is maintained by Huy Duong.
 
 ## Table of Contents
 
 - [About](#about)
 - [RLA App](#rla-app)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Report Bugs](#report-bugs)
+  - [Install and run from source code](#install-and-run-from-source-code)
+  - [Compiling from source](#compiling-from-source)
 - [Software In The Loop](#software-in-the-loop)
 - [Dronekit](#dronekit)
 
 ## About
 
-This repo stores the code and guide for the RLA app, utils scripts for SITL and Raspberry Pi dronekit code. Use the table of contents to navigate to the interested sections
+Our goal is to create a robot that autonomously aerate any patch of lawn.
+
+We use a Cube Black (Pixhawk 2.1) as our autopilot to carry out GPS navigation. Lawn aeration is carried out by drilling into the ground so that hard and dry lawns can still be cared for. We use an Arduino to control a DC motor driving an array of Auger drill bits as well as a stepper motor driving a linear actuator for vertical motion. The link between the Arduino and the Cube is established by a master Raspberry Pi.
+
+This repo main purpose is to provide a guide on how to use download, install and use our RLA Path Planner app alongside Mission Planner to plan out a "lawnmower" path on any patch of lawn. Therefore, you can check out [RLA App](#rla-app) section for more details.
+
+Additionally, you can also find utilities scripts for starting up SITL (virtual vehicle), drill Arduino and Raspberry Pi dronekit code. Use the [Table of Contents](#table-of-contents) above to navigate to the interested sections.
 
 ## RLA App
 
-### Downloads
+### Installation
 
-You can download the latest release of the the app [here](https://github.com/bicoi99/GDP_RLA/releases/download/v1.0/rla_app.zip) or navigate to the Release tab and download the ZIP file from there. Alternatively from using the executable, you can run the app from source and instructions can be found in [Install and run from source code](#install-and-run-from-source-code) section.
+You can download the ZIP file for the latest **RLA Path Planner** release of the the app [here](https://github.com/bicoi99/GDP_RLA/releases/download/v1.0/rla_app.zip) or in the Release tab. After downloading, unzip/extract the `rla_app.zip` file to a location of your choice (I recommend your `Documents`) to see a `rla_app` folder.
 
-The RLA app is to be used together with Mission Planner software. The latest version can be found along with its installation guide [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+![App Unzip](img/app_zip.png)
 
-Please download both RLA Path Planner and Mission Planner before proceeding to the sections below.
+Navigate inside the folder, find and double click `rla_app.exe` (it should have the RLA logo icon next to it) to open up the app. The first time it opens, it should take a few seconds so be patient but you should see the main screen like the picture below. The picture is taken on Linux so yours will not look exactly the same but should have the same layout. I am hiding my system path for security reasons but it should display the absolute path to the files on your system (different to mine but should end with `rla_app_files` folder).
 
-### Open the app
-
-To start up RLA Path Planner, unzip/extract the `rla_app.zip` file you downloaded at a location of your choice (I recommend your `Documents`). After that you should see a `rla_app` folder.
-
-![App Unzip](md_img/app_zip.png)
-
-Go inside the folder, find and open `rla_app.exe` (it should have the RLA logo icon next to it) to open up the app. The first time it opens, it will take a minute so be patient but you should see the main screen show up something like the picture below. The picture is taken on Linux so yours will not look exactly the same but should have the same layout. I am covering my system path for security reasons but it should display the absolute path to the files on your system (different to mine but should end with `rla_app_files` folder).
-
-![App Home Screen](md_img/app_home.png)
-
-Read the instructions and use this page to work through how to set up a lawnmower path.
+![App Home Screen](img/app_home.png)
 
 **Important** - the way the app is packaged, the executable `rla_app.exe` requires all items within the `rla_app` folder to function properly (especially the `rla_app_files` subfolder). If you want to change the location that the app is installed at, make sure you move the entire `rla_app` folder.
 
-### Generating the path
+*Alternatively, you can build the app from source if you have Python. Instructions can be found in [Install and run from source code](#install-and-run-from-source-code)*.
 
-Before making the path, a **polygon** outlining the patch of lawn needs to be defined. Open Mission Planner software to the PLAN tab and navigate the map to a random location of your choice (I use Boldrewood as an example).
+Now your RLA app installation is complete but it is to be used together with **Mission Planner** software. The latest version can be found along with its installation guide [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
-![MP Plan Tab](md_img/MP_plan_tab.png)
+Please download both RLA Path Planner and Mission Planner before proceeding to the sections below.
 
-Right click on the map and select `Polygon > Draw a Polygon`.
+### Usage
 
-![MP Draw Polygon](md_img/MP_draw_polygon.png)
+We start our path planning with creating a **polygon** outlining the patch of lawn. Open Mission Planner software to the `PLAN` tab and navigate the map to your location (The example is done at Boldrewood campus).
 
-Left click on the map to assign polygon verticies/corners. You can drag to change position. Right click on a polygon and `Delete WP` to delete an unwanted vertex.
+![MP Plan Tab](img/MP_plan_tab.png)
 
-![MP Polygon](md_img/MP_polygon.png)
+Once at the correct location, right click on the map and select `Polygon > Draw a Polygon`.
 
-Right click and and select `Polygon > Save Polygon`. Save the .poly file to the location stated in the RLA app start screen (inside `rla_app_files` folder with the name `lawn-polygon.poly` as default but you can change it if you like).
+![MP Draw Polygon](img/MP_draw_polygon.png)
 
-![MP Save Polygon](md_img/MP_save_polygon.png)
+Left click on the map to assign polygon verticies/corners. You can drag and drop to change position or right click on a polygon and `Delete WP` to delete an unwanted vertex.
 
-**Important** - Now return to the app and follow its instructions. The help text should guide you through the process. This is exactly what I want to get feedback on, whether or not the help text is sufficient and helpful. If you spot anything that is unclear, buggy, crashing, let me know so I can improve it. After you complete using the app, it should show this end screen. Use the `Hide/Show` button to re-display the plot so you can compare with what you will import to Mission Planner.
+![MP Polygon](img/MP_polygon.png)
 
-![App End Page](md_img/app_end.png)
+Right click and and select `Polygon > Save Polygon`. Save the .poly file to your desired location or the location stated in the RLA app start screen (inside `rla_app_files` folder with the name `lawn-polygon.poly`).
 
-After you have generated the path file, go back to Mission Planner and press `Load File` on the right hand side. Load the file that you saved in RLA app (default is `polygon-path.txt` in the same folder as `lawn-polygon.poly`).
+![MP Save Polygon](img/MP_save_polygon.png)
 
-![MP Load File](md_img/MP_load_file.png)
+You can now return to the opened **RLA Path Planner** app. The app is fully documented with help text to guide you through the process.
+
+*For testers: this is exactly what I want to get feedback on, whether or not the help text is sufficient and helpful. If you spot anything that is unclear, buggy, crashing, let me know so I can improve it.*
+
+After you finish using the app, it should show this end screen. Use the `Hide/Show` button to re-display the plot so you can compare with what you will import to Mission Planner.
+
+![App End Page](img/app_end.png)
+
+With the path of the generated the mission file, go back to **Mission Planner** and press `Load File` on the right hand side. Load the file that you saved in RLA app (default is `polygon-path.txt` in the same folder as `lawn-polygon.poly`).
+
+![MP Load File](img/MP_load_file.png)
 
 The correct path should be loaded into Mission Planner.
 
-![MP Loaded Mission](md_img/MP_loaded_mission.png)
+![MP Loaded Mission](img/MP_loaded_mission.png)
 
 From here you can proceed as if it is a normal mission. Upload to the vehicle so that it can carry out AUTO mission or GUIDED mode mission.
 
@@ -107,7 +118,7 @@ If you have Anaconda installed, creating new environment is explained [here](htt
 
 To run the app you need to download the source code from the repository. At the top of the page, click the green `Code` button. You can either download the ZIP folder, extract and copy the entire GDP_RLA folder to a place of your choice. Or you can copy the HTTPS link and use git to clone the repo to your wanted location.
 
-![Download Repo](md_img/download_repo.png)
+![Download Repo](img/download_repo.png)
 
 To do the second option, open up Terminal or Command Prompt, navigate to the location you want the code to be in and type: `git clone https://github.com/bicoi99/GDP_RLA.git` and the repo will be automatically cloned to that location. This will require you to have git installed (contact me if you need help) so if you do not want to deal with the hassle, just download ZIP file.
 
@@ -129,9 +140,24 @@ Now you are ready to run the app from source, just type and a window will pop up
 python rla_app.py
 ```
 
-### Compiling the code from source
+### Compiling from source
+
+`pyinstaller` is used to compile the Python code into an executable to distribute. The `rla_app.spec` file contains the compile settings. Run the following command to build the code:
+
+```bash
+pyinstaller rla_app.spec
+```
+
+Some options that you might be interested in in the spec file:
+
+- `added_files` list ensures `rla_app_files` folder is carried over in the compilation.
+- `os` module is used to get the working directory so it should work on any machine. If you have problems, just manually type in the path of the `GDP_RLA` folder.
+- `console` flag is set to `False` to ensure no console pops up when executable is ran. `--noconsole` or `--windowed` or `-w` flags are alternatives to this when you run `pyinstaller` on `rla_app.py` itself.
+- `icon` flag points to the `.ico` file. This is to include the RLA logo with the compiled programme. Alternative flags are `--icon` or `-i`.
 
 ## Software In The Loop
+
+**Due to time constraint, I unfortunately have not completed this section yet so use it for reference only. I will finish the section as soon as I have the time so you can follow along and install SITL on your machine.**
 
 Here is a guide of how to setup SITL for Linux or Linux Virtual Machine (VM) running on Windows.
 
@@ -152,7 +178,7 @@ Follow [this](https://itsfoss.com/install-linux-in-virtualbox/) guide to setup L
 
 This is Huy version of the following [guide](https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html).
 
-First, you need to setup a build environment for ardupilot. Use [this](https://ardupilot.org/dev/docs/building-setup-linux.html) to setup on Ubuntu. Only follow the first section of the guide i.e. stop before *Setup for other Distributions Using the STM Toolchain* section. Keep a note of where you save ardupilot folder, this is where SITL is going to be activated from.
+First, you need to setup a build environment for ardupilot. Use [this](https://ardupilot.org/dev/docs/building-setup-linux.html) to setup on Ubuntu. Only follow the first section of the guide i.e. stop before _Setup for other Distributions Using the STM Toolchain_ section. Keep a note of where you save ardupilot folder, this is where SITL is going to be activated from.
 
 To start the SITL simulation, you need to select the correct vehicle type. This is done by navigating to the appropriate folder. For RLA, we use Rover firmware so change directory to the correct folder:
 
@@ -218,6 +244,16 @@ Now you can use your simulated Rover either using MissionPlanner by connecting t
 
 ## Dronekit
 
+**Due to time constraint, I unfortunately also have not completed this section so use it for reference only but the code is up to date. I will finish the section as soon as I have the time so you can follow along and test dronekit.**
+
 Communication between the autopilot and the microprocessor that controls the aeration mechanism is not straight forward. The use of a master Raspberry Pi is being investigated and Dronekit is a Python API that allows a companion computer to control the Pixhawk.
 
 Dronekit runs on Python 2 and yet to have support for Python 3 so you need to install this on your system. I recommend Anaconda for easy virtual environment if you run the scripts on you Windows machine. But if you run the script on a VM Linux then you should install Python 2 individually as Anaconda is heavy.
+
+## Mini drill experiment
+
+**Due to time constraint, I unfortunately also have not completed this section so use it for reference only but the code is up to date. I will finish the section as soon as I have the time so you can follow along and build your own mini drill setup.**
+
+This is an experiment that I setup to demonstrate the functionality of Pi-Cube-Arduino link. I showed that the Pi can sequentially send GPS coordinates to Cube/SITL and Arduino (serial UART) so that drilling and motion do not obstruct each other. You can watch the demonstration [here](https://drive.google.com/file/d/1Q-LO6JHBYd_n-rem3zJVR_wO7Mw84Pu0/view?usp=sharing).
+
+The Arduino code can be found in `rla-mini-drill` folder. This is a PlatformIO project so make sure you have that installed in VSCode to use. However the code can be ran on the Arduino IDE as well, the file is found in `src/main.cpp`.

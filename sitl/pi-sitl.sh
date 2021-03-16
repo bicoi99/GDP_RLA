@@ -21,4 +21,4 @@ cd $ARDUPILOT_DIR/Rover
 # Start SITL with no local output and only RPi output
 # RPi IP stored in environment variable already
 sim_vehicle.py --map --console --custom-location=$CUSTOM_LOCATION \
-    --no-extra-ports --out=$RPiIP:14550
+    --no-extra-ports --out=$RPiIP:14550 --out=$RPiIP:14551
