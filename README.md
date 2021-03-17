@@ -28,7 +28,7 @@ Additionally, you can also find utilities scripts for starting up SITL (virtual 
 
 ### Installation
 
-You can download the ZIP file for the latest **RLA Path Planner** release of the the app [here](https://github.com/bicoi99/GDP_RLA/releases/download/v1.0/rla_app.zip) or in the Release tab. After downloading, unzip/extract the `rla_app.zip` file to a location of your choice (I recommend your `Documents`) to see a `rla_app` folder.
+You can download the ZIP file for the latest **RLA Path Planner** release of the the app [here](https://github.com/bicoi99/GDP_RLA/releases/download/v1.1/rla_app.zip) or in the Release tab. After downloading, unzip/extract the `rla_app.zip` file to a location of your choice (I recommend your `Documents`) to see a `rla_app` folder.
 
 ![App Unzip](img/app_zip.png)
 
