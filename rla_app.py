@@ -38,7 +38,6 @@ class MainApp(Tk):
         # then join them as well as slap a # at the front
         self.bg_colour = "#" + \
             "".join(map(lambda x: format(x//256, 'x'), bg_colour16))
-        print(self.bg_colour)
 
         # Menu bar
         self.option_add('*tearOff', FALSE)
@@ -157,7 +156,7 @@ class ImportPolygon(ttk.Frame):
         # Gap chooser
         gap_label = ttk.Label(import_frame, text="Nodes gap (m): ")
         gap_label.grid(column=0, row=0, sticky='w')
-        self.node_gap = StringVar(value='2.0')
+        self.node_gap = StringVar(value='1.5')
         gap_chooser = ttk.Spinbox(
             import_frame, from_=1.0, to=5.0, format="%.1f", increment=0.1,
             width=5, textvariable=self.node_gap

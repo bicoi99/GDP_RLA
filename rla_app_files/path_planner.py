@@ -36,6 +36,13 @@ class PathPlanner:
         x_right, y_top = np.amax(self.polygon, 0)
         x_avg = (x_left + x_right) / 2
         y_avg = (y_top + y_bottom) / 2
+        self.bnd_rect = np.array([
+            [x_left, y_top],
+            [x_left, y_bottom],
+            [x_right, y_bottom],
+            [x_right, y_top],
+            [x_left, y_top],
+        ])
         # Convert 2 m gap to decimal degrees using conversion factor
         gap_x = self.gap_in_metres*abs(x_left - x_right) / \
             _get_distance_metres(x_left, y_avg, x_right, y_avg)
@@ -69,6 +76,7 @@ class PathPlanner:
                 else:
                     self.axis.plot(point[0], point[1], 'kx')
         self.axis.plot(self.polygon[:, 0], self.polygon[:, 1], 'x-')
+        self.axis.plot(self.bnd_rect[:,0], self.bnd_rect[:,1],'g-')
         self.axis.set_title("Path")
         self.axis.set_xlabel("Longitude (deg)")
         self.axis.set_ylabel("Latitude (deg)")
@@ -205,10 +213,13 @@ def _is_inside_polygon(polygon, point):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    bg_colour = "#d9d9d9"
+    # bg_colour = "#d9d9d9"
+    bg_colour = '#ffffff'
     fig = plt.figure(tight_layout=True, facecolor=bg_colour)
     axis = fig.add_subplot(111)
-    backend = PathPlanner("rla_app_files/lawn-polygon.poly", axis, bg_colour)
+    backend = PathPlanner("rla_app_files/lawn-polygon.poly", axis, bg_colour,1.5)
     backend.plot_path()
-    backend.export_path("rla_app_files/polygon-path.txt")
+    # backend.export_path("rla_app_files/polygon-path.txt")
+    # plt.savefig("nodes.svg", transparent=True)
+    plt.axis('off')
     plt.show()

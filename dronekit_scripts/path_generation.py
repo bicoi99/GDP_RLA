@@ -172,12 +172,28 @@ def draw_grid(grid, polygon):
 
 
 def draw_highlighted_node_old(grid, polygon):
-    for row in grid:
+    x_left, y_bottom = np.amin(polygon, 0)
+    x_right, y_top = np.amax(polygon, 0)
+    bnd_rect = np.array([
+        [x_left, y_top],
+        [x_left, y_bottom],
+        [x_right, y_bottom],
+        [x_right, y_top],
+        [x_left, y_top],
+    ])
+    # plt.plot(bnd_rect[:,0],bnd_rect[:,1],'g-')
+    wpts = []
+    for i, row in enumerate(grid):
+        if i % 2 == 1:
+            row = np.flip(row, 0)
         for point in row:
             if is_inside_polygon(polygon, point):
                 plt.plot(point[0], point[1], 'rx')
+                wpts.append(point)
             else:
                 plt.plot(point[0], point[1], 'kx')
+    wpts = np.array(wpts)
+    # plt.plot(wpts[:, 0], wpts[:, 1], 'r-')
     plt.plot(polygon[:, 0], polygon[:, 1], 'x-')
     plt.title("Nodes inside polygon")
     plt.xlabel("Longitude (deg)")
@@ -262,9 +278,9 @@ if __name__ == "__main__":
     grid = generate_grid(polygon, 2)
     # draw_polygon(polygon)
     # draw_grid(grid, polygon)
-    # draw_highlighted_node(grid, polygon)
+    draw_highlighted_node_old(grid, polygon)
     save_mission_to_file(
         "dronekit_scripts/generated_path_inside_polygon.txt", grid, polygon)
-    print("Connecting to vehicle")
-    vehicle = connect("127.0.0.1:14550", wait_ready=True)
-    write_mission(vehicle.commands, grid, polygon)
+    # print("Connecting to vehicle")
+    # vehicle = connect("127.0.0.1:14550", wait_ready=True)
+    # write_mission(vehicle.commands, grid, polygon)
