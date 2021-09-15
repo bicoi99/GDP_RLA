@@ -13,6 +13,7 @@ This is the repository for the project Robotic Lawn Aerator, a University of Sou
   - [Compiling from source](#compiling-from-source)
 - [Software In The Loop](#software-in-the-loop)
 - [Dronekit](#dronekit)
+- [Setup Raspberry Pi](#setup-raspberry-pi)
 
 ## About
 
@@ -257,3 +258,10 @@ Dronekit runs on Python 2 and yet to have support for Python 3 so you need to in
 This is an experiment that I setup to demonstrate the functionality of Pi-Cube-Arduino link. I showed that the Pi can sequentially send GPS coordinates to Cube/SITL and Arduino (serial UART) so that drilling and motion do not obstruct each other. You can watch the demonstration [here](https://drive.google.com/file/d/1Q-LO6JHBYd_n-rem3zJVR_wO7Mw84Pu0/view?usp=sharing).
 
 The Arduino code can be found in `rla-mini-drill` folder. This is a PlatformIO project so make sure you have that installed in VSCode to use. However the code can be ran on the Arduino IDE as well, the file is found in `src/main.cpp`.
+
+## Setup Raspberry Pi
+- MAVProxy install [instructions](https://ardupilot.org/mavproxy/docs/getting_started/download_and_installation.html) (Linux Python 3 version).
+- Set up flight controller params and Pi serial ports [instructions](https://ardupilot.org/dev/docs/raspberry-pi-via-mavlink.html). Make sure baudrate is 57600 rather than recommended.
+- Enable UDP connection through port 14550 in firewall. Google for instructions for Linux or Windows as necessary.
+- SSH into the Pi and run `mavproxy.py --master=/dev/serial0 --baudrate=57600 --out=<computer_IP>:14550`.
+- Open Mission Planner and everything should be conneced
